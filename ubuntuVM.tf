@@ -26,6 +26,14 @@ provider "openstack" {
   region      = "RegionOne"
 }
 
+
+resource "tls_private_key" "deployAnsible" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "openstack"
+
 ########################################
 # Crear la Virtual Machine
 ########################################
@@ -84,6 +92,34 @@ resource "openstack_networking_floatingip_v2" "myipnode1" {
 resource "openstack_compute_floatingip_associate_v2" "myipnode1" {
   floating_ip = "${openstack_networking_floatingip_v2.myipnode1.address}"
   instance_id = "${openstack_compute_instance_v2.mi_tf_node1.id}"
+
+   provisioner "file" {
+    connection {
+      type     = "ssh"
+      user     = "ubuntu"
+      private_key  = "${file("c:/users/joaquin/.ssh/id_rsa")}"
+      host = "${azurerm_public_ip.myterraformpublicip.address}"
+    }
+
+    source      = "c:/DDatos msi/ansible/ansible_ssh_keypair/id_rsa.pub"
+    destination = "/home/ubuntu/.ssh/id_rsa_ansible.pub"
+  }
+
+  provisioner "remote-exec" {
+    connection {
+      type     = "ssh"
+      user     = "ubuntu"
+      private_key  = "${file("c:/users/joaquin/.ssh/id_rsa")}"
+      host = "${openstack_networking_floatingip_v2.myipnode1.address}"
+    }
+    inline = [
+       "sudo apt-get update -y",
+       "sudo apt-get upgrade -y",
+       "sudo apt-get install -y python-minimal",
+       "sudo reboot -h now"       
+      ]
+    on_failure = "continue"
+  }
 }
 
 ########################################
@@ -114,6 +150,35 @@ resource "openstack_networking_floatingip_v2" "myipnode2" {
 resource "openstack_compute_floatingip_associate_v2" "myipnode2" {
   floating_ip = "${openstack_networking_floatingip_v2.myipnode2.address}"
   instance_id = "${openstack_compute_instance_v2.mi_tf_node2.id}"
+  
+   provisioner "file" {
+    connection {
+      type     = "ssh"
+      user     = "ubuntu"
+      private_key  = "${file("c:/users/joaquin/.ssh/id_rsa")}"
+      host = "${azurerm_public_ip.myterraformpublicip.address}"
+    }
+
+    source      = "c:/DDatos msi/ansible/ansible_ssh_keypair/id_rsa.pub"
+    destination = "/home/ubuntu/.ssh/id_rsa_ansible.pub"
+  }
+  provisioner "remote-exec" {
+    connection {
+      type     = "ssh"
+      user     = "ubuntu"
+      private_key  = "${file("c:/users/joaquin/.ssh/id_rsa")}"
+      host = "${openstack_networking_floatingip_v2.myipnode2.address}"
+    }
+    inline = [
+       "sudo apt-get update -y",
+       "sudo apt-get upgrade -y",
+       "sudo apt-get install -y python-minimal",
+       "sudo more /home/ubuntu/.ssh/id_rsa_ansible.pub >> /home/ubuntu/.ssh/authorized_keys",
+       "sudo reboot -h now"       
+      ]
+    on_failure = "continue"
+  }
+
 }
 
 
