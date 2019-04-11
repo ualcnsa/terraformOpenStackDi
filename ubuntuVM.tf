@@ -80,6 +80,7 @@ resource "openstack_compute_floatingip_associate_v2" "myip_as" {
  ##     "sudo apt-get upgrade -y",
       "sudo apt-get install -y python-minimal",
       "sudo more /home/ubuntu/.ssh/id_rsa.pub >> /home/ubuntu/.ssh/authorized_keys",  ## inyecto la clave publica en authorized_keys
+      ## Los siguientes comandos instalan ansible (solo ejecutar en la máquina de control ansible-dev)
       "sudo apt-get install -y software-properties-common", 
       "sudo apt-add-repository --yes --update ppa:ansible/ansible", 
       "sudo apt-get install -y ansible"
@@ -89,3 +90,11 @@ resource "openstack_compute_floatingip_associate_v2" "myip_as" {
 
 }
 
+## Copiar la plantilla de la máquina virtual "ansible-dev" para crear los nodos "node-1", "node-2"
+## Importante: en los nodos se ha de:
+##  1. Copiar solamente la clave pública id_rsa.pub
+##        source      = "c:/DDatos msi/ansible/ansible_ssh_keypair/id_rsa.pub"
+##  2. Instalar solamente 
+##        python-minimal
+##  3. Inyectar la clave publica id_rsa.pub en authorized_keys
+## 
