@@ -1,12 +1,22 @@
-## 1. Generate the token to connect to OpenStack
-## curl -X POST http://192.168.64.12:5000/v2.0/tokens -d '{"auth":{"passwordCredentials":{"username":"jjcanada", "password":"PASSWORD"}, "tenantId":"7cbf04cede6d4919991b8bb3b3afa0c0"}}' -H 'Content-type: application/json' > token.json
+## generate the token
+## export OPENSTACKUSERNAME=yourusername
+## export OPENSTACKPASSWORD=yourpassword
+## curl -X POST http://192.168.64.12:5000/v2.0/tokens -d '{"auth":{"passwordCredentials":{"username": "'"$OPENSTACKUSERNAME"'", "password":"'"$OPENSTACKPASSWORD"'"}}}' -H 'Content-type: application/json' > token.json
+
+################################################
+## Variables del USUARIO OpenStack
+################################################
+
+locals {
+  json_data = jsondecode(file("${path.module}/token.json"))
+  user_token = "${local.json_data.access.token.id}"
+  user_name = "${local.json_data.access.user.username}"
+}
+
 variable "user_name" {default = "jjcanada"}
 
 ## 2. Abrir el archivo token.json generado en la operación curl y copiar el token de acceso
 
-variable "my_token" {
-  default = "gAAAAABcr2g3WfCzxtxpwlBtCu4DigqegVm40rXg_l-og_9gLD4RBwImR_--zx5MbsZw7rUJ9fXq2k6V71CP5ro16KRJBrDFhpxduSMhEed4vYenEeDZBW9i7kJykkTqf4sPUK8EjcUjag76EbQHbsPaiFJkQhKzgQkF32juVXb5X5ZJRmxrQlw"  
-}
 
 variable "project_name" {
   default = "jjcanada"     ## Nombre del proyecto en OpenStack / provider tenant_name
@@ -21,7 +31,7 @@ variable "project_network" {
 provider "openstack" {
   user_name   = "${var.user_name}"
   tenant_name = "${var.project_name}"
-  token 	  = "${var.my_token}"
+  token 	  = "${local.user_token}"
   auth_url    = "http://192.168.64.12:5000/v3/"
   region      = "RegionOne"
 }
